@@ -14,6 +14,7 @@ export default function MunicipalMap({
   selected,
   onSelect,
   compact = false,
+  relief = false,
   selectionOnly = false,
   focusSelected = false,
   onPickPoint,
@@ -182,62 +183,64 @@ export default function MunicipalMap({
             height={view.h}
             fill="#edf3f5"
           />
-          {drawing.features.map((f) => {
-            const p = f.properties,
-              count = Number(p.total || 0),
-              isSelected = selected === p.code,
-              highlighted = isSelected || hover?.code === p.code || focusedCode === p.code;
-            return (
-              <path
-                key={p.code}
-                d={f.path}
-                fill={
-                  selectionOnly && highlighted
-                    ? "#A9D2ED"
-                    : mapMunicipalityFill(count, drawing.max, highlighted)
-                }
-                stroke={highlighted ? MAP_SELECTION_COLOR : "#fff"}
-                strokeWidth={isSelected ? 3 : highlighted ? 2 : 0.65}
-                vectorEffect="non-scaling-stroke"
-                fillRule="evenodd"
-                tabIndex={0}
-                role="button"
-                data-municipality={p.code}
-                data-record-count={count}
-                aria-label={
-                  selectionOnly ? p.name : `${p.name}: ${count} registros${isSelected ? ", municipio seleccionado" : ""}`
-                }
-                aria-pressed={selected === p.code}
-                onMouseEnter={() => setHover(p)}
-                onMouseLeave={() => setHover(null)}
-                onFocus={() => setFocusedCode(p.code)}
-                onBlur={() => setFocusedCode(null)}
-                onClick={(e) => {
-                  if (onPickPoint) {
-                    const point = svg.current.createSVGPoint();
-                    point.x = e.clientX;
-                    point.y = e.clientY;
-                    const local = point.matrixTransform(
-                      svg.current.getScreenCTM().inverse(),
-                    );
-                    onPickPoint(drawing.unproject([local.x, local.y]), p.code);
-                  } else onSelect?.(p.code);
-                }}
-                onKeyDown={(e) => {
-                  if (["Enter", " "].includes(e.key)) {
-                    e.preventDefault();
-                    onSelect?.(p.code);
+          <g className={relief ? "map-relief" : undefined}>
+            {drawing.features.map((f) => {
+              const p = f.properties,
+                count = Number(p.total || 0),
+                isSelected = selected === p.code,
+                highlighted = isSelected || hover?.code === p.code || focusedCode === p.code;
+              return (
+                <path
+                  key={p.code}
+                  d={f.path}
+                  fill={
+                    selectionOnly && highlighted
+                      ? "#A9D2ED"
+                      : mapMunicipalityFill(count, drawing.max, highlighted)
                   }
-                }}
-              >
-                <title>
-                  {selectionOnly
-                    ? p.name
-                    : `${p.name} · ${count} registros publicados${isSelected ? " · Municipio seleccionado" : ""}`}
-                </title>
-              </path>
-            );
-          })}
+                  stroke={highlighted ? MAP_SELECTION_COLOR : "#fff"}
+                  strokeWidth={isSelected ? 3 : highlighted ? 2 : 0.65}
+                  vectorEffect="non-scaling-stroke"
+                  fillRule="evenodd"
+                  tabIndex={0}
+                  role="button"
+                  data-municipality={p.code}
+                  data-record-count={count}
+                  aria-label={
+                    selectionOnly ? p.name : `${p.name}: ${count} registros${isSelected ? ", municipio seleccionado" : ""}`
+                  }
+                  aria-pressed={selected === p.code}
+                  onMouseEnter={() => setHover(p)}
+                  onMouseLeave={() => setHover(null)}
+                  onFocus={() => setFocusedCode(p.code)}
+                  onBlur={() => setFocusedCode(null)}
+                  onClick={(e) => {
+                    if (onPickPoint) {
+                      const point = svg.current.createSVGPoint();
+                      point.x = e.clientX;
+                      point.y = e.clientY;
+                      const local = point.matrixTransform(
+                        svg.current.getScreenCTM().inverse(),
+                      );
+                      onPickPoint(drawing.unproject([local.x, local.y]), p.code);
+                    } else onSelect?.(p.code);
+                  }}
+                  onKeyDown={(e) => {
+                    if (["Enter", " "].includes(e.key)) {
+                      e.preventDefault();
+                      onSelect?.(p.code);
+                    }
+                  }}
+                >
+                  <title>
+                    {selectionOnly
+                      ? p.name
+                      : `${p.name} · ${count} registros publicados${isSelected ? " · Municipio seleccionado" : ""}`}
+                  </title>
+                </path>
+              );
+            })}
+          </g>
           {(data.points || []).map((f) => {
             const [x, y] = drawing.project(f.geometry.coordinates);
             return (

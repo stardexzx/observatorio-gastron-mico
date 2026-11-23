@@ -43,7 +43,7 @@ export function DashboardFilters({ onGenerate }: { onGenerate: () => void }) {
           </PopoverContent></Popover>
         </div>
         <div><label id="category-filter-label" className="mb-2 block text-xs font-medium text-[#748399]">Categoría</label><Select value={filters.category} onValueChange={value => setFilter("category", value as typeof filters.category)}><SelectTrigger aria-label="Categoría" aria-labelledby="category-filter-label" className="w-full text-xs"><SelectValue/></SelectTrigger><SelectContent>
-          <SelectItem value="todas">Todas las categorías</SelectItem><SelectItem value="recetas">Recetas</SelectItem><SelectItem value="ingredientes">Ingredientes</SelectItem><SelectItem value="mercados">Mercados</SelectItem><SelectItem value="cocineras">Cocineras/os</SelectItem><SelectItem value="legal">Protección legal</SelectItem>
+          <SelectItem value="todas">Todas las categorías</SelectItem><SelectItem value="recetas">Recetas</SelectItem><SelectItem value="ingredientes">Ingredientes</SelectItem><SelectItem value="mercados">Mercados</SelectItem><SelectItem value="cocineras">Cocineras/os</SelectItem>
         </SelectContent></Select></div>
       </div>
       <p className="mt-4 border-t pt-3 text-[10px] leading-relaxed text-[#8190a4]">Los resultados se actualizan al seleccionar un filtro.</p>

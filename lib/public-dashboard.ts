@@ -16,11 +16,11 @@ export function normalizeSummaryFilters(input: unknown): DashboardFilters {
   const saved = input as Record<string, unknown>;
   const period = typeof saved.period === "string" && /^(todos|\d{4})$/.test(saved.period) ? saved.period : "todos";
   const municipality = typeof saved.municipality === "string" && (saved.municipality === "todos" || pueblaMunicipalities.some(item => item.code === saved.municipality)) ? saved.municipality : "todos";
-  const category = ["todas", "recetas", "ingredientes", "mercados", "cocineras", "legal"].includes(String(saved.category)) ? saved.category as CategoryFilter : "todas";
+  const category = ["todas", "recetas", "ingredientes", "mercados", "cocineras"].includes(String(saved.category)) ? saved.category as CategoryFilter : "todas";
   return { period, municipality, category };
 }
-const categories = ["recetas", "ingredientes", "mercados", "cocineras", "legal"] as const;
-const colors = ["#033AA5", "#2789D1", "#FFBF18", "#EF703C", "#D58B20"];
+const categories = ["recetas", "ingredientes", "mercados", "cocineras"] as const;
+const colors = ["#033AA5", "#2789D1", "#FFBF18", "#EF703C"];
 const normalize = (text: string) => text.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLocaleLowerCase("es-MX").trim();
 // Do not infer dates from locale-dependent display strings or consultation dates.
 const publicationMonth = (record: PublicSummaryRecord) => {

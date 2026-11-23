@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { BarChart3, BookOpen, ChefHat, ChevronDown, FileText, History, Info, Layers3, Map, Menu, Mic2, Network, Scale, Search, ShoppingBasket, Wheat, X } from "lucide-react";
+import { BarChart3, BookOpen, ChefHat, ChevronDown, FileText, History, Info, Layers3, Map, Menu, Mic2, Network, Search, ShoppingBasket, Wheat, X } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { UserControls } from "./user-controls";
@@ -18,7 +18,6 @@ const acervo = [
 const navigation = [
   { label: "Resumen", icon: BarChart3, href: "/" },
   { label: "Mapa", icon: Map, href: "/mapa" },
-  { label: "Protección legal", icon: Scale, href: "/proteccion-legal" },
   { label: "Podcast", icon: Mic2, href: "/podcast" },
 ];
 const analysis = [

@@ -37,6 +37,14 @@ def assert_read_only(page):
         assert name not in text, f"Se mostró una ficha privada: {name}"
 
 
+def assert_search_spacing(field):
+    assert field.evaluate("""input => {
+        const icon = input.previousElementSibling;
+        const textStart = input.getBoundingClientRect().left + parseFloat(getComputedStyle(input).paddingLeft);
+        return icon.getBoundingClientRect().right < textStart;
+    }"""), "La lupa invade el espacio del texto"
+
+
 with sync_playwright() as p:
     browser = p.chromium.launch(
         executable_path=os.environ.get("CHROMIUM_PATH", "/usr/bin/chromium"),
@@ -99,13 +107,40 @@ with sync_playwright() as p:
     expect(page.get_by_role("menuitem", name="Acerca del Observatorio", exact=True)).to_be_visible()
     page.keyboard.press("Escape")
 
+    expect(page.get_by_role("link", name="Protección legal", exact=True)).to_have_count(0)
+    for path in ["/proteccion-legal", "/proteccion-legal/ficha-anterior"]:
+        assert context.request.get(origin + path).status == 404, path
+
     routes = ["/", "/recetas", "/recetario", "/ingredientes", "/cocineras", "/mercados", "/podcast",
               "/mapa", "/memoria", "/acerca", "/red-conocimiento", "/datos-analisis", "/reportes",
-              "/proteccion-legal", "/conocer-observatorio"]
+              "/conocer-observatorio"]
     for route in routes:
         visit(route)
         if route in ["/recetas", "/mapa", "/memoria", "/red-conocimiento", "/reportes"]:
             page.screenshot(path=str(output / (route.strip("/") + "-desktop.png")), full_page=True)
+    visit("/reportes")
+    assert_search_spacing(page.get_by_role("textbox", name="Buscar municipio en reporte"))
+    expect(page.get_by_role("rowheader", name="Protección legal")).to_have_count(0)
+
+    visit("/red-conocimiento")
+    search = page.get_by_role("textbox", name="Buscar en la red")
+    category = page.get_by_role("combobox", name="Categoría de la red")
+    assert_search_spacing(search)
+    if catalog["ingredients"]:
+        category.select_option(label="Ingredientes")
+        graph = page.get_by_role("group", name="Relaciones del acervo")
+        expect(graph.get_by_role("button")).to_have_count(len(catalog["ingredients"]))
+        name = catalog["ingredients"][0]["name"]
+        search.fill(name)
+        record = page.get_by_role("button", name="Ingrediente: " + name, exact=True)
+        expect(record.locator("svg.lucide-wheat")).to_be_visible()
+        expect(graph.get_by_role("button", name="Ingrediente, " + name, exact=True).locator("svg.lucide-wheat")).to_be_visible()
+        record.click()
+        expect(page.get_by_role("link", name="Ver ficha", exact=True)).to_be_visible()
+        page.get_by_role("button", name="Restablecer", exact=True).click()
+        expect(search).to_have_value("")
+        expect(category).to_have_value("")
+
     visit("/mercados")
     expect(page.locator("body")).to_contain_text("cuando se publiquen sus fichas")
     expect(page.locator("a[href^='/admin/']")).to_have_count(0)
@@ -147,6 +182,7 @@ with sync_playwright() as p:
     # Geographic filters and zoom preserve the territorial map and URL sharing.
     visit("/mapa")
     expect(page.get_by_role("group", name="Mapa de los 217 municipios de Puebla", exact=True)).to_be_visible()
+    assert page.locator(".municipal-canvas .map-relief").evaluate("group => getComputedStyle(group).filter.includes('drop-shadow')")
     page.get_by_label("Municipio del mapa", exact=True).select_option("21114")
     expect(page).to_have_url(re.compile("municipio=21114"))
     page.get_by_label("Buscar en el mapa", exact=True).fill("maíz")

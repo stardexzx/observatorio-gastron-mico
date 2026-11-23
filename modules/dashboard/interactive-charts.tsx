@@ -10,7 +10,6 @@ export const chartCategories=[
  {key:'ingredientes',label:'Ingredientes',color:'#2789D1'},
  {key:'mercados',label:'Mercados',color:'#FFBF18'},
  {key:'cocineras',label:'Cocineras/os',color:'#EF703C'},
- {key:'legal',label:'Protección legal',color:'#D58B20'},
 ] as const;
 type ChartKey=typeof chartCategories[number]['key'];
 const tooltipStyle={borderRadius:10,border:'1px solid #A9D2ED',fontSize:11,background:'#fff',boxShadow:'0 5px 20px #001B6210'};
@@ -43,7 +42,7 @@ export function CompositionExplorer(){
  const distribution=allDistribution;
  const total=distribution.reduce((sum,item)=>sum+item.value,0);
  const selected=distribution.find(item=>item.key===filters.category);
- const choose=(key:ChartKey)=>setFilter('category',filters.category===key?'todas':key);
+ const choose=(key:Exclude<CategoryFilter,'todas'>)=>setFilter('category',filters.category===key?'todas':key);
  return <div className={styles.composition}><div className={styles.donut}><ResponsiveContainer width="100%" height="100%" minWidth={0} initialDimension={{width:260,height:190}}><PieChart accessibilityLayer><Pie data={distribution} dataKey="value" nameKey="name" innerRadius={64} outerRadius={85} paddingAngle={3} cornerRadius={4} stroke="none" animationDuration={250} onClick={(_,index)=>choose(distribution[index].key)} style={{cursor:'pointer'}}>{distribution.map(item=><Cell key={item.key} fill={chartCategories.find(category=>category.key===item.key)?.color} fillOpacity={!selected||selected.key===item.key?1:.22}/>)}</Pie><Tooltip contentStyle={tooltipStyle} formatter={(value,name)=>[`${format(Number(value))} registros · ${total?(Number(value)/total*100).toFixed(1):'0.0'}%`,name]}/></PieChart></ResponsiveContainer><div className={styles.donutCenter}><strong>{format(selected?.value??total)}</strong><span>{selected?.name??'Total del acervo'}</span></div></div>
  <div className={styles.compositionLegend} role="group" aria-label="Filtrar resumen por categoría">{distribution.map(item=><button key={item.key} type="button" aria-pressed={filters.category===item.key} aria-label={`Filtrar por ${item.name}`} onClick={()=>choose(item.key)}><i style={{background:chartCategories.find(category=>category.key===item.key)?.color}}/><span>{item.name}</span><strong>{format(item.value)}</strong><small>{total?(item.value/total*100).toFixed(1):'0.0'}%</small></button>)}</div><p className={styles.hint}>Pulsa un segmento o una categoría para filtrar el resumen.</p>{filters.category!=='todas'&&<button type="button" className={styles.clear} onClick={()=>setFilter('category','todas')}><RotateCcw size={12}/>Ver todas las categorías</button>}<span className="sr-only" role="status">{view.categoryOnly?`Resumen filtrado por ${categoryLabels[view.categoryOnly]}`:'Todas las categorías'}</span></div>;
 }

@@ -179,6 +179,8 @@ body { background:#f6f8fb; }
 .acervo-stat:hover { border-color:#c2dce6; }
 .acervo-stat.is-active { border-color:#cce8f0; background:#eef8fb; }
 .acervo-input { border:1px solid #e5eaf0; border-radius:10px; background:#f8fafc; padding:10px 12px; font:inherit; font-size:12px; color:#52647d; outline:none; box-shadow:none; }
+.acervo-input.acervo-search-input { padding-inline-start:2.5rem; }
+.map-relief { filter:drop-shadow(2px 5px 1px rgb(0 0 0 / 70%)); }
 .acervo-input:focus { border-color:#7ebed1; box-shadow:0 0 0 3px #1684a50b; }
 .acervo-input[aria-invalid=true] { border-color:#de8ca5; }
 .acervo-label { display:block; margin-bottom:10px; font-size:12px; font-weight:500; color:#52647d; }
