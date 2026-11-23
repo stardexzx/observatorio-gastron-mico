@@ -198,7 +198,7 @@ export default function MunicipalMap({
                       ? "#A9D2ED"
                       : mapMunicipalityFill(count, drawing.max, highlighted)
                   }
-                  stroke={highlighted ? MAP_SELECTION_COLOR : "#fff"}
+                  stroke={highlighted ? MAP_SELECTION_COLOR : relief ? "#000" : "#fff"}
                   strokeWidth={isSelected ? 3 : highlighted ? 2 : 0.65}
                   vectorEffect="non-scaling-stroke"
                   fillRule="evenodd"

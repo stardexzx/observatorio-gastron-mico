@@ -2,7 +2,7 @@
 
 import { useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import { ArrowRight, BookOpen, ChefHat, Mic2, Network, RotateCcw, Search, ShoppingBasket, Wheat } from "lucide-react";
+import { ArrowRight, BookOpen, ChefHat, Network, RotateCcw, Search, ShoppingBasket, Wheat } from "lucide-react";
 import { usePublicCatalog } from "@/components/public/public-catalog-provider";
 import { SectionShell } from "@/components/integration/section-shell";
 import { authorCatalogs, buildKnowledgeGraph, buildUnifiedCatalogs, normalizedName } from "@/lib/integration/records";
@@ -12,7 +12,6 @@ const categories: Record<string, { label: string; singular: string; icon: typeof
   ing: { label: "Ingredientes", singular: "Ingrediente", icon: Wheat, color: "#2789D1" },
   mer: { label: "Mercados y tianguis", singular: "Mercado o tianguis", icon: ShoppingBasket, color: "#94630f" },
   coc: { label: "Cocineras y cocineros", singular: "Cocinera o cocinero", icon: ChefHat, color: "#EF703C" },
-  ep: { label: "Podcast", singular: "Capítulo", icon: Mic2, color: "#68849e" },
 };
 
 type Point = { x: number; y: number };
@@ -32,16 +31,9 @@ export function PublicKnowledgeNetwork() {
       ...unified,
       mercados: catalog.markets.map(market => ({ ...market, n: market.name })),
     });
-    result.nodes.push(...catalog.episodes.map(episode => ({
-      id: `podcast:${episode.id}`, n: episode.title, t: "ep",
-      to: `/podcast/${encodeURIComponent(episode.id)}`, r: 14, x: 0, y: 0,
-    })));
     const lookup = new Map(result.nodes.map(node => [node.id.slice(node.id.indexOf(":") + 1), node.id]));
     const seen = new Set(result.edges.map(edge => [edge.source, edge.target].sort().join("|")));
-    const episodeLinks = catalog.episodes.flatMap(episode =>
-      [...episode.recipeIds, ...episode.ingredientIds].map(id => ({ source: episode.id, target: id, type: "documenta" })),
-    );
-    for (const relation of [...catalog.relations, ...episodeLinks]) {
+    for (const relation of catalog.relations) {
       const source = lookup.get(relation.source), target = lookup.get(relation.target);
       if (!source || !target || source === target) continue;
       const key = [source, target].sort().join("|");
@@ -51,7 +43,7 @@ export function PublicKnowledgeNetwork() {
       }
     }
     return result;
-  }, [catalog.recipes, catalog.cooks, catalog.ingredients, catalog.markets, catalog.episodes, catalog.relations]);
+  }, [catalog.recipes, catalog.cooks, catalog.ingredients, catalog.markets, catalog.relations]);
 
   const nodes = category ? graph.nodes.filter(node => node.t === category) : graph.nodes;
   const points = new Map(nodes.map((node, index) => {
