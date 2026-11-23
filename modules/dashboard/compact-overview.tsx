@@ -91,7 +91,17 @@ function Metric({label,value,suffix,detail,data,color,featured=false,icon:Icon}:
   return <article className={`relative min-w-0 overflow-hidden rounded-2xl border p-5 ${featured?"border-[#cce8f0] bg-[#eef8fb]":"border-[#e5eaf0] bg-white"}`}>
     <div className="flex items-center justify-between gap-2"><p className="text-[11px] font-medium text-[#7b899d]">{label}</p><span className="grid size-8 shrink-0 place-items-center rounded-lg" style={{color,background:`${color}12`}}><Icon className="size-4"/></span></div>
     <p className="mt-3 text-[32px] font-semibold leading-none tracking-tight">{value} {suffix&&<span className="text-sm font-normal text-[#9ba7b7]">{suffix}</span>}</p>
-    <div className="mt-4 flex items-end justify-between gap-2"><p className="flex items-center gap-1 text-[10px] text-[#5b8e81]">{detail.startsWith("+")&&<ArrowUpRight className="size-3 shrink-0"/>}{detail}</p><div className="h-7 w-20 shrink-0"><ResponsiveContainer width="100%" height="100%"><AreaChart data={data} margin={{top:3,right:0,bottom:0,left:0}}><Tooltip contentStyle={tooltipStyle} formatter={value=>[value,label]}/><Area type="monotone" dataKey="value" name={label} stroke={color} strokeWidth={1.8} fill={color} fillOpacity={.06} dot={false}/></AreaChart></ResponsiveContainer></div></div>
+    <div className="mt-4 flex items-end justify-between gap-2">
+      <p className="flex items-center gap-1 text-[10px] text-[#5b8e81]">{detail.startsWith("+")&&<ArrowUpRight className="size-3 shrink-0"/>}{detail}</p>
+      <div className="h-7 w-20 shrink-0">
+        <ResponsiveContainer width="100%" height="100%" initialDimension={{width:80,height:28}}>
+          <AreaChart data={data} margin={{top:3,right:0,bottom:0,left:0}}>
+            <Tooltip contentStyle={tooltipStyle} formatter={value=>[value,label]}/>
+            <Area type="monotone" dataKey="value" name={label} stroke={color} strokeWidth={1.8} fill={color} fillOpacity={.06} dot={false}/>
+          </AreaChart>
+        </ResponsiveContainer>
+      </div>
+    </div>
   </article>;
 }
 function DashboardCard({title,subtitle,action,children,className=""}:{title:string;subtitle:string;action?:React.ReactNode;children:React.ReactNode;className?:string}) {
