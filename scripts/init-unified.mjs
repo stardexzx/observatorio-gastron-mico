@@ -38,6 +38,18 @@ try {
   for (const migration of ["006_consultar_fichas_tipo.sql", "006_login.sql", "007_panel_forms.sql", "008_public_catalogs.sql"]) {
     await client.query(await sqlFile(`migrations/${migration}`));
   }
+  const { rows: [marketSchema] } = await client.query(`
+    SELECT to_regclass('ogp.mercado_recetas') IS NOT NULL AS recipes,
+      count(*)::int AS address_columns
+    FROM information_schema.columns
+    WHERE table_schema='ogp' AND table_name='mercado_ubicaciones'
+      AND column_name IN ('calle','numero_exterior','numero_interior','colonia','codigo_postal','localidad_nombre')
+  `);
+  if (marketSchema.address_columns > 0 && (!marketSchema.recipes || marketSchema.address_columns !== 6)) {
+    throw new Error('La instalación de las migraciones de mercados está incompleta.');
+  }
+  if (!marketSchema.recipes) await client.query(await sqlFile("migrations/009_mercado_recetas.sql"));
+  if (!marketSchema.address_columns) await client.query(await sqlFile("migrations/010_mercado_direccion.sql"));
   // Existing editorial history is content supplied in this project, not synthetic catalog data.
   // Preserve an edited database version when applying migrations again.
   await client.query("INSERT INTO demo.editorial_content(key,content) VALUES('timeline',$1) ON CONFLICT(key) DO NOTHING",[JSON.stringify(timelineEras)]);

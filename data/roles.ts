@@ -13,7 +13,7 @@ export const accessSections = [
   {id:"ingredientes",name:"Ingredientes",description:"Ingredientes y variedades"},
   {id:"mercados",name:"Mercados y tianguis",description:"Establecimientos y espacios de intercambio"},
   {id:"cocineras",name:"Cocineras y cocineros",description:"Personas y saberes gastronómicos"},
-  {id:"legal",name:"Protección legal",description:"Expedientes e instrumentos legales"},
+  {id:"recetario",name:"Recetario",description:"Consulta y gestión de publicaciones de la biblioteca"},
   {id:"podcast",name:"Podcast",description:"Episodios, entrevistas y videos"},
   {id:"reportes",name:"Reportes",description:"Consulta y generación de reportes"},
   {id:"roles",name:"Roles y permisos",description:"Administración de accesos del equipo"},

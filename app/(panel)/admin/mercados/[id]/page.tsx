@@ -1,3 +1,6 @@
-import { PublicMarkets } from "@/modules/public/catalog";
+import { MarketEditor } from "@/modules/markets/markets-client";
+import { Toaster } from "@/components/ui/sonner";
 
-export default function Page(){return <PublicMarkets/>;}
+export default async function Page({params}:{params:Promise<{id:string}>}) {
+  return <><MarketEditor id={(await params).id}/><Toaster position="bottom-right" richColors/></>;
+}

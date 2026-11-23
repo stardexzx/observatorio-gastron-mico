@@ -30,7 +30,7 @@ const publicationMonth = (record: PublicSummaryRecord) => {
 export function publicSummaryYears(catalog: PublicSummaryCatalog) {
   return [...new Set([...catalog.recipes, ...catalog.cooks, ...catalog.ingredients, ...(catalog.markets ?? [])].map(publicationMonth).filter((month): month is string => !!month).map(month => month.slice(0, 4)))].sort().reverse();
 }
-export function buildPublicDashboardView(catalog: PublicSummaryCatalog, filters: DashboardFilters, search = ""): ReturnType<typeof buildDashboardView> & { municipalityCounts: Record<string, number>; allDistribution: ReturnType<typeof buildDashboardView>["distribution"]; undated: number } {
+export function buildPublicDashboardView(catalog: PublicSummaryCatalog, filters: DashboardFilters, search = ""): ReturnType<typeof buildDashboardView> & { municipalityCounts: Record<string, number>; allDistribution: ReturnType<typeof buildDashboardView>["distribution"]; undated: number; rankings: { cocineras: { name: string; value: number }[] } } {
   const rows = [
     ...catalog.recipes.map(record => ({ ...record, kind: "recetas" as const })),
     ...catalog.ingredients.map(record => ({ ...record, kind: "ingredientes" as const })),
@@ -77,7 +77,7 @@ export function buildPublicDashboardView(catalog: PublicSummaryCatalog, filters:
   return {
     metricValues: { total: total.toLocaleString("es-MX"), recetas: String(allDistribution[0].value), ingredientes: String(allDistribution[1].value), mercados: String(allDistribution[2].value), cocineras: String(allDistribution[3].value), wealth: String(municipalCategories.filter(value => value === greatestDiversity && value > 0).length), verified: `${verified}%` },
     records, verification, coverage, growth, distribution, allDistribution, distributionTotal: total, municipalityCounts, undated,
-    rankings: { recetas: rank("recetas"), ingredientes: rank("ingredientes"), mercados: rank("mercados"), municipios: Object.entries(municipalityCounts).map(([code, value]) => ({ name: pueblaMunicipalities.find(item => item.code === code)?.name || code, value })).sort((a,b) => b.value - a.value || a.name.localeCompare(b.name, "es")) },
+    rankings: { cocineras: rank("cocineras"), recetas: rank("recetas"), ingredientes: rank("ingredientes"), mercados: rank("mercados"), municipios: Object.entries(municipalityCounts).map(([code, value]) => ({ name: pueblaMunicipalities.find(item => item.code === code)?.name || code, value })).sort((a,b) => b.value - a.value || a.name.localeCompare(b.name, "es")) },
     quality, reports: total ? [{ title: "Panorama del acervo publicado", date: `${total} registros disponibles` }, { title: "Cobertura municipal", date: `${Object.keys(municipalityCounts).length} municipios con publicaciones` }] : [], verified, categoryOnly: filters.category === "todas" ? null : filters.category as Exclude<CategoryFilter,"todas">, searchResults,
   };
 }

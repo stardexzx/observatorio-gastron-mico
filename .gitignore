@@ -15,3 +15,5 @@ work/
 
 __pycache__/
 *.py[cod]
+
+.data/

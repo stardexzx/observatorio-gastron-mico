@@ -3,7 +3,9 @@ import {randomBytes,scryptSync} from 'node:crypto';
 import {execFile,spawn} from 'node:child_process';
 import {promisify} from 'node:util';
 import {createServer} from 'node:net';
-import {readFile,writeFile,mkdir,open} from 'node:fs/promises';
+import {readFile,writeFile,mkdir,open,mkdtemp,rm} from 'node:fs/promises';
+import {tmpdir} from 'node:os';
+import {join} from 'node:path';
 import assert from 'node:assert/strict';
 import pg from 'pg';
 const exec=promisify(execFile),name=`ogp_public_test_${randomBytes(5).toString('hex')}`;
@@ -11,13 +13,14 @@ const password=randomBytes(24).toString('hex');
 const image='postgis/postgis:16-3.5@sha256:94146ac37bc61e2322f88016056c5920729cb8c64c8542ed590af8fc2abdac07';
 const pause=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 const freePort=()=>new Promise((resolve,reject)=>{const s=createServer();s.on('error',reject);s.listen(0,'127.0.0.1',()=>{const port=s.address().port;s.close(()=>resolve(port));});});
-let container=false,server,db,log;
+let container=false,server,db,log,booksDir;
 try{
  await mkdir('work',{recursive:true});
  await exec('docker',['run','--rm','-d','--name',name,'-e','POSTGRES_DB=observatorio_puebla_test','-e','POSTGRES_USER=ogp_admin','-e',`POSTGRES_PASSWORD=${password}`,'-p','127.0.0.1::5432',image],{timeout:60000});container=true;
  const binding=(await exec('docker',['port',name,'5432/tcp'])).stdout.trim();
  const url=new URL(`postgresql://ogp_admin@127.0.0.1:${Number(binding.split(':').at(-1))}/observatorio_puebla_test`);url.password=password;
- const env={...process.env,DATABASE_URL:url.toString(),DEMO_MODE:'true',NEXT_TELEMETRY_DISABLED:'1'};
+ booksDir=await mkdtemp(join(tmpdir(),'ogp-admin-books-'));
+ const env={...process.env,OGP_BOOKS_DATA_DIR:booksDir,DATABASE_URL:url.toString(),DEMO_MODE:'true',NEXT_TELEMETRY_DISABLED:'1'};
  for(let i=0;i<60;i++){try{const c=new pg.Client({connectionString:env.DATABASE_URL});await c.connect();await c.end();break;}catch(error){if(i===59)throw error;await pause(1000);}}
  await exec(process.execPath,['scripts/init-unified.mjs'],{env,timeout:30000});
  await exec(process.execPath,['scripts/init-unified.mjs'],{env,timeout:30000});
@@ -90,6 +93,46 @@ try{
  data=await catalog();assert.equal(data.ingredients.filter(record=>record.name==='Chile sintético').length,1);assert.notEqual(data.ingredients.find(record=>record.name==='Chile sintético').description,'COPIA QUE DEBE PERDER');
  await exec(process.execPath,['scripts/init-unified.mjs'],{env,timeout:30000});
  data=await catalog();assert.ok(data.cooks.some(record=>record.id===cookId));assert.ok(data.episodes.some(record=>record.id===episodeId));assert.equal(data.timeline.length,5);
+ const marketCatalog=(await (await get('/api/markets/catalogs',capture)).json()).catalogs;
+ assert.equal(marketCatalog.canCreate,true);
+ const market={name:'Mercado borrador temporal',type:'tianguis',description:'Ficha interna',observationDate:new Date().toISOString().slice(0,10),sourceId:marketCatalog.sources[0].id,
+  address:{street:'Calle de prueba',exterior:'1',interior:'',neighborhood:'Barrio de prueba',municipalityCode:'21114',postalCode:'72000',locality:'Puebla',reference:''},
+  hours:[{day:1,opens:'22:00',closes:'02:00',nextDay:true}],recipes:[{id:recipeId,relationship:'se_vende'}],ingredients:[],people:[]};
+ response=await send('/api/markets',market,capture);
+ assert.equal(response.status,201,await response.clone().text());
+ const savedMarket=(await response.json()).market;
+ assert.deepEqual(savedMarket.hours,market.hours);
+ assert.deepEqual(savedMarket.recipes,market.recipes);
+ assert.equal((await send(`/api/markets/${savedMarket.id}`,market,review,'PUT')).status,403);
+ assert.equal((await get('/api/markets')).status,401);
+ assert.ok(!(await catalog()).markets.some(record=>record.id===savedMarket.id));
+ const editBook=(path,method,cookie,status,files=false)=>{
+  const form=new FormData();
+  for(const [key,value] of Object.entries({title:'Recetario de integración',description:'Recetario sintético',status,pages:'1'}))form.set(key,value);
+  if(files){
+   form.set('pdf',new File(['%PDF-1.4\n'], 'prueba.pdf',{type:'application/pdf'}));
+   form.set('cover',new File([Uint8Array.from([137,80,78,71,13,10,26,10])], 'portada.png',{type:'image/png'}));
+  }
+  return fetch(origin+path,{method,headers:{Origin:origin,Cookie:cookie},body:form});
+ };
+ const books='/api/admin/recetarios';
+ assert.equal((await get(books)).status,401);
+ assert.equal((await editBook(books,'POST',capture,'published',true)).status,403);
+ response=await editBook(books,'POST',capture,'draft',true);
+ assert.equal(response.status,201,await response.clone().text());
+ const bookId=(await response.json()).book.id;
+ const adminBookUrl=`${books}/${bookId}`,publicBookUrl=`/api/recetarios/${bookId}`;
+ assert.equal((await get(publicBookUrl)).status,404);
+ assert.equal((await get(adminBookUrl,review)).status,200);
+ assert.equal((await editBook(adminBookUrl,'PATCH',review,'published')).status,403);
+ assert.equal((await editBook(adminBookUrl,'PATCH',admin,'published')).status,200);
+ assert.equal((await get(publicBookUrl)).status,200);
+ assert.equal((await editBook(adminBookUrl,'PATCH',capture,'draft')).status,403);
+ const manageBook=method=>fetch(origin+adminBookUrl,{method,headers:{Origin:origin,Cookie:admin}});
+ assert.equal((await manageBook('DELETE')).status,200);
+ assert.equal((await get(publicBookUrl)).status,404);
+ assert.equal((await manageBook('POST')).status,200);
+ assert.equal((await get(publicBookUrl)).status,200);
  const [cookieName,cookieValue]=admin.split('=');
  const session={origin,name:cookieName,value:cookieValue,reviewCookie:{name:review.split('=')[0],value:review.split('=')[1]},captureCookie:{name:capture.split('=')[0],value:capture.split('=')[1]},recipeId,cookId,ingredientId,episodeId,draftRecipeId,privateRecipeId:draftRecipeId,privateIngredientId,privateNames:['RECETA BORRADOR PRIVADO','INGREDIENTE PRIVADO','INFORMANTE PRIVADO','NOTAS PRIVADAS']};
  await writeFile('work/public-browser-session.json',JSON.stringify(session),{mode:0o600});
@@ -105,4 +148,5 @@ try{
  if(server){server.kill('SIGTERM');await pause(500);if(server.exitCode===null)server.kill('SIGKILL');}
  if(log)await log.close();if(db)await db.end().catch(()=>{});
  if(container)await exec('docker',['rm','-fv',name]).catch(()=>{});
+ if(booksDir)await rm(booksDir,{recursive:true,force:true});
 }

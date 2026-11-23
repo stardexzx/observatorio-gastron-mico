@@ -76,7 +76,7 @@ Si `auth:setup` informa que **ya existen cuentas activadas**, esa base ya tiene 
 | Ingredientes, cocineras y podcast | Formularios del creador, ahora guardados en PostgreSQL mediante APIs con sesión |
 | Recetarios PDF | Entrega del creador |
 | Usuarios, roles y acceso | Sesiones y cuentas de la entrega del creador |
-| Mercados y tianguis | Apartado pendiente en usuario y admin, como en el ZIP; filtro del mapa disponible |
+| Mercados y tianguis | Captura y edición para el equipo con dirección, horarios, fuentes y vínculos. El catálogo público muestra fichas aprobadas. |
 | Protección legal | Apartado reservado, sin contenido público por ahora |
 | Datos y análisis | Reportes con cifras reales y red de conocimiento de registros publicados |
 | Mapa | Consulta de publicaciones por municipio, conserva colores cartográficos y usa controles del panel |
@@ -108,7 +108,9 @@ Las pruebas de navegador requieren Playwright y Chromium. Las pruebas de integra
 
 ## Recetario PDF
 
-La entrega incluye el lector y la referencia «Puebla, la cocina de México», pero el ZIP no contiene su archivo PDF. La biblioteca muestra esa ausencia sin intentar abrir un libro inexistente. Para habilitarlo, incorpora el archivo real autorizado como `assets/recetarios/cocina-dig-2.pdf` y recarga el panel. No se agregó un PDF ficticio.
+Desde Multimedia, el equipo puede cargar libros en PDF y generar o elegir su portada. Administración gestiona y publica los libros. Capturistas pueden subir y editar sus borradores, y revisores pueden consultar. Los archivos se guardan en `.data/` o en el directorio definido por `OGP_BOOKS_DATA_DIR`. Conserva ese directorio en almacenamiento persistente junto con los respaldos de PostgreSQL.
+
+La edición de «Puebla, la cocina de México» se sirve desde `assets/recetarios/cocina-dig-2.pdf`. La consulta pública mantiene el lector y muestra los libros publicados por el equipo.
 
 ## Línea de tiempo
 
@@ -116,16 +118,16 @@ Selecciona una época o recorre sus hitos con anterior/siguiente. La búsqueda e
 
 ## Consulta pública y publicación
 
-Acervo contiene exactamente Recetas, Recetario, Ingredientes, Mercados y tianguis y Cocineras y cocineros. Datos y análisis agrupa Reportes y Red de conocimiento. Conocer el observatorio agrupa Memoria histórica y Acerca.
+El Acervo público contiene Recetas, Recetario, Ingredientes, Mercados y tianguis y Cocineras y cocineros. Con sesión, Recetario y Podcast aparecen en Multimedia. Datos y análisis agrupa Reportes y Red de conocimiento. Conocer el observatorio agrupa Memoria histórica y Acerca.
 
 Las lecturas públicas usan `/api/public/catalog` sin sesión. Solo devuelve versiones aprobadas originales de `ogp.v_fichas_publicas` o versiones expresamente publicadas desde el panel. La entrega original de la BD tiene prioridad ante duplicados. Borradores, datos de contacto e información privada de informantes no forman parte de esa respuesta. Las fichas públicas enlazan solo registros también publicados.
 
 Administración y revisión pueden publicar o retirar fichas; capturista captura borradores y los envía a revisión. En recetas, publicar crea una versión pública independiente: los cambios posteriores del borrador no alteran lo publicado hasta que el equipo lo actualice. Cocineras requiere autorización de la persona para publicar. La retirada o revocación se refleja al volver a consultar.
 
-Después de actualizar una instalación existente ejecuta `npm run db:migrate` antes de `npm run dev`. La migración 008 añade catálogos del panel, versiones públicas y contenido editorial sin borrar datos. El PDF pendiente sigue mostrándose como «Próximamente» hasta incorporar el archivo real.
+Después de actualizar una instalación existente ejecuta `npm run db:migrate` antes de `npm run dev`. La migración 008 añade catálogos del panel, versiones públicas y contenido editorial. Las migraciones 009 y 010 añaden vínculos con recetas y direcciones estructuradas en Mercados.
 
 ## Datos y colores compartidos
 
-El Resumen, los reportes y el mapa consultan el mismo acervo publicado con y sin sesión. Entrar como administrador no añade registros de demostración ni mezcla borradores con las cifras públicas. Para hacer visible una ficha real, el equipo debe revisarla y publicarla desde Acervo.
+El Resumen, los reportes y el mapa consultan el mismo acervo publicado con y sin sesión. Entrar como administrador no añade registros de demostración ni mezcla borradores con las cifras públicas. La captura de mercados queda en la vista del equipo. La consulta pública de mercados sigue leyendo las revisiones aprobadas de PostgreSQL.
 
 Los tonos azules de los municipios representan el número de publicaciones que cumple los filtros. Como en el ZIP, pasar el cursor, enfocar o seleccionar un municipio rellena toda su superficie con el acento naranja. La leyenda distingue este resaltado de la escala azul de cantidades. Al retirar el cursor o deseleccionar y salir del foco se restaura su color de densidad. La selección no modifica los conteos ni reescala el resto del territorio.

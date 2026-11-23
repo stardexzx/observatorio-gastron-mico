@@ -3,6 +3,7 @@ import {randomUUID} from 'node:crypto';
 import {z} from 'zod';
 import type {SessionUser} from '@/lib/auth/types';
 import {publicProjection,type PublicKind} from '@/lib/public-projection';
+import {validateEpisodeExtras} from '@/data/podcasts';
 import {pool,requireDemo} from './postgres';
 
 export class CatalogFailure extends Error{constructor(message:string,public status=400){super(message);}}
@@ -16,8 +17,11 @@ const image=z.object({id:z.string().max(100),name:z.string().max(500),url:z.stri
 const common={id:z.string().max(100).optional(),name:z.string().trim().min(1).max(250),municipality:text.default(''),municipalityCode:z.string().regex(/^21\d{3}$/).or(z.literal('')).default(''),region:text.default(''),status:z.enum(['draft','in-review','verified']).default('draft'),updatedAt:text.optional(),source:text.default(''),sourceReference:text.default(''),consultationDate:text.default(''),photos:z.array(image).max(30).default([]),completeness:z.number().min(0).max(100).default(0)};
 const cookInput=z.object({...common,role:text.default(''),community:text.default(''),yearsExperience:text.default(''),languages:list,specialties:list,linkedRecipes:list,biography:text.default(''),recognitions:text.default(''),consent:z.boolean().default(false),quote:text.default(''),studentCount:z.number().int().nonnegative().default(0),collective:text.default(''),establishments:list,linkedMarkets:list,culinaryLineage:list,oralHistories:z.array(z.object({id:text,title:text,date:text,duration:text,url:z.string().max(14*1024*1024).refine(value=>value===''||/^data:audio\/(mpeg|mp4|x-m4a|wav|x-wav|ogg|webm);base64,[A-Za-z0-9+/=]+$/.test(value)||/^https:\/\/[^\s]+$/.test(value),'El audio debe ser un archivo admitido o enlace HTTPS.')})).max(100).default([]),verifiedAt:text.default(''),verifiedBy:text.default(''),sourceReferences:list});
 const ingredientInput=z.object({...common,category:text.default(''),season:text.default(''),recipes:z.number().int().nonnegative().default(0),description:text.default(''),localNames:list,varieties:list,months:list,uses:list,linkedRecipes:list});
-const episodeInput=z.object({id:z.string().max(100).optional(),title:z.string().trim().min(1).max(250),youtubeId:z.string().regex(/^[A-Za-z0-9_-]{11}$/),format:z.enum(['podcast','video']).default('podcast'),description:text.default(''),participants:text.default(''),date:text.default(''),municipality:text.default(''),municipalityCode:z.string().regex(/^21\d{3}$/).or(z.literal('')).default(''),recipeIds:list,ingredientIds:list,status:z.enum(['draft','published']).default('draft'),updatedAt:text.optional()});
-const inputFor=(kind:CatalogKind)=>kind==='cooks'?cookInput:kind==='ingredients'?ingredientInput:episodeInput;
+const episodeInput=z.object({id:z.string().max(100).optional(),title:z.string().trim().min(1).max(250),youtubeId:z.string().regex(/^[A-Za-z0-9_-]{11}$/),format:z.enum(['podcast','video']).default('podcast'),description:text.default(''),participants:text.default(''),participantEntries:z.array(z.object({name:z.string().trim().min(1).max(150),role:z.string().trim().max(150)})).max(100).default([]),extraRecipes:list,extraIngredients:list,duration:z.string().max(10).default(''),chapters:z.array(z.object({title:z.string().trim().min(1).max(250),start:z.number().int().min(0).max(86400)})).max(50).default([]),transcript:text.default(''),date:text.default(''),municipality:text.default(''),municipalityCode:z.string().regex(/^21\d{3}$/).or(z.literal('')).default(''),recipeIds:list,ingredientIds:list,status:z.enum(['draft','published']).default('draft'),updatedAt:text.optional()});
+const validatedEpisodeInput=episodeInput.superRefine((episode,ctx)=>{
+ try{validateEpisodeExtras(episode);}catch(error){ctx.addIssue({code:'custom',message:(error as Error).message});}
+}).transform(episode=>({...episode,chapters:[...episode.chapters].sort((a,b)=>a.start-b.start)}));
+const inputFor=(kind:CatalogKind)=>kind==='cooks'?cookInput:kind==='ingredients'?ingredientInput:validatedEpisodeInput;
 type Form=Record<string,unknown>;
 export async function listCatalog(kind:CatalogKind){
  requireDemo();const {rows}=await pool.query(`SELECT f.form,p.published_at FROM demo.catalog_forms f LEFT JOIN demo.public_catalog_versions p ON p.kind=f.kind AND p.record_id=f.id WHERE f.kind=$1 ORDER BY f.updated_at DESC,f.id`,[kind]);
