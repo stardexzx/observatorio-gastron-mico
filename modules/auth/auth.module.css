@@ -25,3 +25,88 @@
 .auth-photo-caption p { font-size:12px; line-height:1.9; color:#ffffffe0; }
 @media(min-width:1600px) { .auth-page { padding:32px; }.auth-form-side { padding:24px 14%; } }
 @media(max-width:800px) { .auth-page { display:block; padding:28px 24px; }.auth-form-side { min-height:calc(100dvh - 56px); padding:0; }.auth-photo { display:none; }.auth-card { padding:52px 0; }.auth-brand>span { font-size:15px; } }
+
+.login-page {
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+  gap: 0;
+  padding: clamp(14px, 2vw, 32px);
+  background: #f1f5f8;
+}
+.login-page .auth-photo {
+  grid-column: 1;
+  grid-row: 1;
+  min-height: 600px;
+  border-radius: 24px;
+  background: #102b4e;
+}
+.login-page .auth-photo::after {
+  background: linear-gradient(0deg, #071d3df5, #102b4e7a 73%, #102b4e55);
+}
+.login-page .auth-photo-caption {
+  bottom: clamp(30px, 7vw, 108px);
+}
+.login-page .auth-photo-caption h2 {
+  font-size: clamp(32px, 4.1vw, 64px);
+  font-weight: 650;
+}
+.login-page .auth-photo-caption p {
+  font-size: clamp(13px, 1.25vw, 17px);
+  line-height: 1.55;
+}
+.login-page .auth-form-side {
+  grid-column: 2;
+  grid-row: 1;
+  justify-content: center;
+  align-items: center;
+  gap: 24px;
+  padding: 40px clamp(24px, 4vw, 72px);
+}
+.login-page .auth-brand,
+.login-page .auth-card {
+  width: 100%;
+  max-width: 480px;
+}
+.login-page .auth-card {
+  margin: 0;
+  padding: clamp(24px, 4vw, 52px);
+  border: 1px solid #dce6ee;
+  border-radius: 20px;
+  background: white;
+  box-shadow: 0 18px 42px #102b4e12;
+}
+.login-page .auth-card h1 {
+  font-size: clamp(30px, 3vw, 42px);
+  line-height: 1.15;
+}
+.login-page .auth-card p {
+  font-size: 14px;
+}
+.login-page .auth-card :global(.acervo-label) {
+  font-size: 13px;
+}
+@media (max-width: 800px) {
+  .login-page {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    padding: 12px;
+  }
+  .login-page .auth-photo {
+    display: block;
+    order: -1;
+    min-height: 260px;
+    border-radius: 18px;
+  }
+  .login-page .auth-photo-caption {
+    bottom: 24px;
+    left: 24px;
+    right: 24px;
+  }
+  .login-page .auth-photo-caption h2 {
+    margin: 8px 0;
+  }
+  .login-page .auth-form-side {
+    min-height: 0;
+    padding: 0 4px 20px;
+  }
+}
