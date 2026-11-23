@@ -1,11 +1,11 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { MAP_DENSITY_COLORS, MAP_SELECTION_COLOR, mapDensityColor, mapDensityLegend } from "../src/components/map/mapScale.js";
+import { MAP_DENSITY_COLORS, MAP_INTERACTION_COLOR, mapDensityColor, mapDensityLegend } from "../src/components/map/mapScale.js";
 
 test("an empty map has only a zero range and never gives empty municipalities a density color", () => {
   assert.deepEqual(mapDensityLegend(0), [{ min: 0, max: 0, label: "0 registros", color: MAP_DENSITY_COLORS[0] }]);
   for (const count of [0, -1, undefined, NaN, Infinity]) assert.equal(mapDensityColor(count, 0), MAP_DENSITY_COLORS[0]);
-  assert.ok(!MAP_DENSITY_COLORS.includes(MAP_SELECTION_COLOR));
+  assert.ok(!MAP_DENSITY_COLORS.includes(MAP_INTERACTION_COLOR));
 });
 
 test("every numeric legend interval describes the actual fill, including small catalogs and boundary counts", () => {

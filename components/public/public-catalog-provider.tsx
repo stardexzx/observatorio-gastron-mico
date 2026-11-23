@@ -21,10 +21,12 @@ export type PublicMarketRecord = {
   sourceReference?: string;
 };
 
+type PublishedRecord<T> = T & { publishedAt?: string };
+
 export type PublicCatalog = {
-  recipes: RecipeRecord[];
-  cooks: CookRecord[];
-  ingredients: IngredientRecord[];
+  recipes: PublishedRecord<RecipeRecord>[];
+  cooks: PublishedRecord<CookRecord>[];
+  ingredients: PublishedRecord<IngredientRecord>[];
   episodes: Episode[];
   markets: PublicMarketRecord[];
   timeline: typeof timelineEras;

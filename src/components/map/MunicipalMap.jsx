@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Plus, Minus, RotateCcw } from "lucide-react";
-import { MAP_SELECTION_COLOR, MAP_INTERACTION_COLOR, mapMunicipalityFill, mapDensityLegend } from "./mapScale.js";
+import { MAP_INTERACTION_COLOR, mapMunicipalityFill, mapDensityLegend } from "./mapScale.js";
 const BASE = { x: 0, y: 0, w: 620, h: 440 };
 function pointsOf(feature) {
   return (
@@ -198,8 +198,8 @@ export default function MunicipalMap({
                       ? "#A9D2ED"
                       : mapMunicipalityFill(count, drawing.max, highlighted)
                   }
-                  stroke={highlighted ? MAP_SELECTION_COLOR : relief ? "#000" : "#fff"}
-                  strokeWidth={isSelected ? 3 : highlighted ? 2 : 0.65}
+                  stroke={relief ? "#000" : "#fff"}
+                  strokeWidth={0.65}
                   vectorEffect="non-scaling-stroke"
                   fillRule="evenodd"
                   tabIndex={0}

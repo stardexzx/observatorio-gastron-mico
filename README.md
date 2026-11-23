@@ -76,7 +76,7 @@ Si `auth:setup` informa que **ya existen cuentas activadas**, esa base ya tiene 
 | Ingredientes, cocineras y podcast | Formularios del creador, ahora guardados en PostgreSQL mediante APIs con sesión |
 | Recetarios PDF | Entrega del creador |
 | Usuarios, roles y acceso | Sesiones y cuentas de la entrega del creador |
-| Mercados y tianguis | Captura y edición para el equipo con dirección, horarios, fuentes y vínculos. El catálogo público muestra fichas aprobadas. |
+| Mercados y tianguis | Captura y edición para el equipo con dirección, horarios, fuentes y vínculos. El mapa muestra mercados publicados y el listado público sigue pendiente. |
 | Protección legal | Apartado reservado, sin contenido público por ahora |
 | Datos y análisis | Reportes con cifras reales y red de conocimiento de registros publicados |
 | Mapa | Consulta de publicaciones por municipio, conserva colores cartográficos y usa controles del panel |
@@ -87,7 +87,7 @@ El esquema de dominio del autor coincide con el esquema existente. El inicializa
 
 ## Datos anteriores y procedencia
 
-En **Menú del equipo → Registros anteriores** puedes revisar los registros del navegador de la versión anterior y descargar un respaldo. La importación es explícita: las fichas coincidentes por nombre conservan la versión del creador; las recetas importadas se crean como borradores con los permisos de la cuenta actual. Los registros incompletos requieren completar sus datos antes de importarlos. No se convierten ejemplos ni estados de interfaz en publicaciones verificadas.
+En la ruta protegida `/integracion` puedes revisar los registros del navegador de la versión anterior y descargar un respaldo. La importación es explícita: las fichas coincidentes por nombre conservan la versión del creador; las recetas importadas se crean como borradores con los permisos de la cuenta actual. Los registros incompletos requieren completar sus datos antes de importarlos. No se convierten ejemplos ni estados de interfaz en publicaciones verificadas.
 
 Los almacenes del navegador pertenecen a su dominio y puerto: para recuperar registros anteriores debes abrir el panel en el mismo navegador y origen donde se capturaron. No se borran automáticamente los almacenes antiguos. Los adjuntos que antes se guardaron con una URL temporal necesitan volver a adjuntarse si esa URL ya venció. Los catálogos nuevos de cocineras, ingredientes y podcast se guardan en PostgreSQL. Los archivos locales de la entrega anterior se conservan, pero no se publican ni importan automáticamente. El resumen y los reportes reflejan exclusivamente publicaciones en ambas vistas. Las herramientas de Acervo permiten al equipo consultar y editar los borradores.
 
@@ -118,7 +118,7 @@ Selecciona una época o recorre sus hitos con anterior/siguiente. La búsqueda e
 
 ## Consulta pública y publicación
 
-El Acervo público contiene Recetas, Recetario, Ingredientes, Mercados y tianguis y Cocineras y cocineros. Con sesión, Recetario y Podcast aparecen en Multimedia. Datos y análisis agrupa Reportes y Red de conocimiento. Conocer el observatorio agrupa Memoria histórica y Acerca.
+Acervo contiene Recetas, Ingredientes, Mercados y tianguis y Cocineras y cocineros. Multimedia agrupa Recetario y Podcast en la vista pública y en la del equipo. Datos y análisis agrupa Reportes y Red de conocimiento. Conocer el observatorio agrupa Memoria histórica y Acerca.
 
 Las lecturas públicas usan `/api/public/catalog` sin sesión. Solo devuelve versiones aprobadas originales de `ogp.v_fichas_publicas` o versiones expresamente publicadas desde el panel. La entrega original de la BD tiene prioridad ante duplicados. Borradores, datos de contacto e información privada de informantes no forman parte de esa respuesta. Las fichas públicas enlazan solo registros también publicados.
 

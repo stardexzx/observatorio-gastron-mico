@@ -11,19 +11,17 @@ import { UserControls } from "./user-controls";
 
 const acervo = [
   { label: "Recetas", icon: BookOpen, href: "/recetas" },
-  { label: "Recetario", icon: BookOpen, href: "/recetario" },
   { label: "Ingredientes", icon: Wheat, href: "/ingredientes" },
   { label: "Mercados y tianguis", icon: ShoppingBasket, href: "/mercados" },
   { label: "Cocineras y cocineros", icon: ChefHat, href: "/cocineras" },
 ];
 const multimedia = [
-  { label: "Recetario", icon: BookMarked, href: "/admin/recetario" },
+  { label: "Recetario", icon: BookMarked, href: "/recetario" },
   { label: "Podcast", icon: Mic2, href: "/podcast" },
 ];
 const navigation = [
   { label: "Resumen", icon: BarChart3, href: "/" },
   { label: "Mapa", icon: Map, href: "/mapa" },
-  { label: "Podcast", icon: Mic2, href: "/podcast" },
 ];
 const analysis = [
   { label: "Reportes", icon: FileText, href: "/reportes" },
@@ -39,12 +37,17 @@ export function ObservatorySidebar({ activeItem }: { activeItem: string }) {
   const [search, setSearch] = useState("");
   const [searchOpen, setSearchOpen] = useState(false);
   const user = useSessionUser();
-  const acervoItems = user ? acervo.filter(item => item.href !== "/recetario").map(item =>
+  const acervoItems = user ? acervo.map(item =>
     item.href === "/mercados" ? { ...item, href: "/admin/mercados" } : item
   ) : acervo;
-  const navItems = user ? navigation.slice(0, 2) : navigation;
-  const results = [...navItems, ...acervoItems, ...analysis, ...about].filter(item => item.label.toLocaleLowerCase("es-MX").includes(search.toLocaleLowerCase("es-MX")));
-  if (user) results.push(...multimedia.filter(item => `Multimedia ${item.label}`.toLocaleLowerCase("es-MX").includes(search.toLocaleLowerCase("es-MX"))));
+  const multimediaItems = user ? multimedia.map(item =>
+    item.href === "/recetario" ? { ...item, href: "/admin/recetario" } : item
+  ) : multimedia;
+  const query = search.trim().toLocaleLowerCase("es-MX");
+  const results = [...navigation, ...acervoItems, ...analysis, ...about].filter(item =>
+    item.label.toLocaleLowerCase("es-MX").includes(query)
+  );
+  results.push(...multimediaItems.filter(item => `Multimedia ${item.label}`.toLocaleLowerCase("es-MX").includes(query)));
   const navLink = ({ label, icon: Icon, href }: typeof navigation[number]) => <Link key={label} href={href} onClick={() => setMobileOpen(false)} aria-current={activeItem === label ? "page" : undefined} className={`admin-nav-link ${activeItem === label ? "is-active" : ""}`}><Icon className="size-4 shrink-0"/>{label}</Link>;
 
   const menu = (label: string, Icon: typeof Layers3, items: typeof acervo) => <DropdownMenu>
@@ -56,10 +59,10 @@ export function ObservatorySidebar({ activeItem }: { activeItem: string }) {
     <div className="admin-header-inner">
       <Link href="/" className="admin-brand-symbol" aria-label="Observatorio Gastronómico de Puebla, inicio" title="Observatorio Gastronómico de Puebla"><Image src="/brand/tibor-talavera.svg" alt="Tibor de Talavera" width={34} height={54} unoptimized className="h-[54px] w-[34px] object-contain"/><span className="admin-brand-name">Observatorio<br/>Gastronómico<span>de Puebla</span></span></Link>
     <nav id="admin-menu" aria-label="Navegación principal" className={`admin-nav-row ${mobileOpen ? "is-open" : ""}`}>
-      {navItems.slice(0,2).map(navLink)}
+      {navigation.map(navLink)}
       {menu("Acervo", Layers3, acervoItems)}
       {menu("Datos y análisis", BarChart3, analysis)}
-      {user ? menu("Multimedia", Clapperboard, multimedia) : navItems.slice(2).map(navLink)}
+      {menu("Multimedia", Clapperboard, multimediaItems)}
       {menu("Conocer el observatorio", Info, about)}
     </nav>
       <div className="admin-header-actions">

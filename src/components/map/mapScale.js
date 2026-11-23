@@ -1,5 +1,4 @@
 export const MAP_DENSITY_COLORS = ["#edf3f5", "#c8dfe4", "#8dbcc6", "#43869a", "#164f70", "#102f4f"];
-export const MAP_SELECTION_COLOR = "#033AA5";
 export const MAP_INTERACTION_COLOR = "#c45a32";
 
 const DENSITY_LEVELS = MAP_DENSITY_COLORS.length - 1;

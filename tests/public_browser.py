@@ -10,6 +10,7 @@ import re
 import sys
 from pathlib import Path
 from urllib.parse import parse_qs, urlparse
+from zipfile import ZipFile
 
 from playwright.sync_api import expect, sync_playwright
 
@@ -89,12 +90,17 @@ with sync_playwright() as p:
     assert all(record.get("status") == "published" for record in catalog["episodes"])
     assert all(not record.get("informant", {}).get("name") for record in catalog["recipes"])
 
-    # The Acervo menu has only the five original sections.
+    # The public and team menus group the same four catalogs and Multimedia.
     page.get_by_role("button", name="Acervo", exact=True).click()
-    expected_acervo = ["Recetas", "Recetario", "Ingredientes", "Mercados y tianguis", "Cocineras y cocineros"]
-    expect(page.get_by_role("menuitem")).to_have_count(5)
+    expected_acervo = ["Recetas", "Ingredientes", "Mercados y tianguis", "Cocineras y cocineros"]
+    expect(page.get_by_role("menuitem")).to_have_count(4)
     for label in expected_acervo:
         expect(page.get_by_role("menuitem", name=label, exact=True)).to_be_visible()
+    page.keyboard.press("Escape")
+    page.get_by_role("button", name="Multimedia", exact=True).click()
+    expect(page.get_by_role("menuitem")).to_have_count(2)
+    expect(page.get_by_role("menuitem", name="Recetario", exact=True)).to_have_attribute("href", "/recetario")
+    expect(page.get_by_role("menuitem", name="Podcast", exact=True)).to_have_attribute("href", "/podcast")
     page.keyboard.press("Escape")
     page.get_by_role("button", name="Datos y análisis", exact=True).click()
     expect(page.get_by_role("menuitem")).to_have_count(2)
@@ -119,8 +125,28 @@ with sync_playwright() as p:
         if route in ["/recetas", "/mapa", "/memoria", "/red-conocimiento", "/reportes"]:
             page.screenshot(path=str(output / (route.strip("/") + "-desktop.png")), full_page=True)
     visit("/reportes")
-    assert_search_spacing(page.get_by_role("textbox", name="Buscar municipio en reporte"))
-    expect(page.get_by_role("rowheader", name="Protección legal")).to_have_count(0)
+    assert_search_spacing(page.get_by_role("textbox", name="Buscar reporte"))
+    expect(page.get_by_role("heading", name="Crear un reporte")).to_be_visible()
+    page.get_by_role("button", name=re.compile("^Catálogo de recetas")).click()
+    dialog = page.get_by_role("dialog", name="Catálogo de recetas")
+    dialog.get_by_role("button", name="CSV", exact=True).click()
+    with page.expect_download() as download:
+        dialog.get_by_role("button", name="Generar reporte").click()
+    csv = download.value.path().read_text(encoding="utf-8-sig")
+    assert all(name not in csv for name in private_names)
+    for record in catalog["recipes"]:
+        assert record["name"] in csv
+    page.get_by_role("button", name=re.compile("^Cobertura territorial")).click()
+    dialog = page.get_by_role("dialog", name="Cobertura territorial")
+    dialog.get_by_role("button", name="XLSX", exact=True).click()
+    with page.expect_download() as download:
+        dialog.get_by_role("button", name="Generar reporte").click()
+    assert download.value.suggested_filename.endswith(".xlsx")
+    with ZipFile(download.value.path()) as workbook:
+        assert b"Municipio" in workbook.read("xl/worksheets/sheet1.xml")
+    page.get_by_role("textbox", name="Buscar reporte").fill("cobertura")
+    expect(page.get_by_role("row").filter(has_text="Catálogo de recetas")).to_have_count(0)
+    expect(page.get_by_role("row").filter(has_text="Cobertura territorial")).to_be_visible()
 
     visit("/red-conocimiento")
     search = page.get_by_role("textbox", name="Buscar en la red")
@@ -239,7 +265,7 @@ with sync_playwright() as p:
     visit("/")
     page.get_by_role("button", name="Abrir menú", exact=True).click()
     page.get_by_role("button", name="Acervo", exact=True).click()
-    expect(page.get_by_role("menuitem")).to_have_count(5)
+    expect(page.get_by_role("menuitem")).to_have_count(4)
     page.get_by_role("menuitem", name="Recetas", exact=True).click()
     expect(page.locator("h1")).to_have_text("Recetas")
     visit("/memoria")
@@ -291,4 +317,4 @@ with sync_playwright() as p:
     assert not errors, errors
     context.close()
     browser.close()
-    print("Chromium: navegación pública, cinco acciones de Acervo, fichas de lectura, filtros, mapa, memoria, acceso protegido y móvil correctos.")
+    print("Chromium: navegación pública, cuatro secciones de Acervo, Multimedia, fichas de lectura, filtros, mapa, memoria, acceso protegido y móvil correctos.")

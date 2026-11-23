@@ -22,8 +22,15 @@ export function downloadDashboardData(view: DashboardView, filters: DashboardFil
 }
 
 export function downloadReportRows(filename:string, rows:(string|number)[][]) {
-  const csv = rows.map(row => row.map(value => `"${String(value).replaceAll('"', '""')}"`).join(",")).join("\r\n");
-  const url = URL.createObjectURL(new Blob(["\uFEFF", csv], {type: "text/csv;charset=utf-8;"}));
+  const csv = rows.map(row => row.map(value => {
+    const text = typeof value === "string" && /^[\s]*[=+\-@]/.test(value) ? "'" + value : String(value);
+    return `"${text.replaceAll('"', '""')}"`;
+  }).join(",")).join("\r\n");
+  downloadReportFile(filename, new Blob(["\uFEFF", csv], {type: "text/csv;charset=utf-8;"}));
+}
+
+export function downloadReportFile(filename: string, file: Blob) {
+  const url = URL.createObjectURL(file);
   const link = document.createElement("a");
   link.href = url;
   link.download = filename;
